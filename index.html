@@ -8,6 +8,7 @@
 
   <body>
     <div class="container">
+      <div id="loadingIndicator" style="display: none;">Загрузка комментариев...</div>
       <ul id="list" class="comments">
       </ul>
       <div class="add-form">
@@ -38,6 +39,18 @@
     const textInputElement = document.getElementById('text-input');
     const buttonElement = document.getElementById('add-button');
     const personalKey = 'artem-nadtocheev';
+
+    function protector(str) {
+      return str.replace(/[&<>"']/g, function(match) {
+        switch (match) {
+          case '&': return '&amp;';
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '"': return '&quot;';
+          case "'": return '&#39;';
+        }
+      });
+    }
 
     const initComment = () => {
       const commentElements = document.querySelectorAll('.comment');
@@ -77,19 +90,22 @@
       buttonElement.addEventListener('click', () => {
         nameInputElement.classList.remove('error');
         textInputElement.classList.remove('error');
-        if (nameInputElement.value === '') {
+        if (nameInputElement.value.trim() === '') {
           nameInputElement.classList.add('error');
           return;
-        } else if (textInputElement.value === '') {
+        } else if (textInputElement.value.trim() === '') {
           textInputElement.classList.add('error');
           return;
         }
-      addComment(nameInputElement.value, textInputElement.value);
+      const escapedName = protector(nameInputElement.value);
+      const escapedText = protector(textInputElement.value);
+      addComment(escapedName, escapedText);
       nameInputElement.value = '';
       textInputElement.value = '';
     });
 
     async function fetchComments() {
+      document.getElementById('loadingIndicator').style.display = 'block';
       buttonElement.disabled = true;
       buttonElement.textContent = 'LOADING...';
       const response = await fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`);
@@ -99,6 +115,7 @@
       } else {
         console.error('Ошибка при получении комментариев:', response.status);
       }
+      document.getElementById('loadingIndicator').style.display = 'none';
       buttonElement.disabled = false;
       buttonElement.textContent = 'Написать';
     }
