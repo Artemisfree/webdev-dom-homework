@@ -104,20 +104,30 @@
       textInputElement.value = '';
     });
 
-    async function fetchComments() {
+    function fetchComments() {
       document.getElementById('loadingIndicator').style.display = 'block';
-      buttonElement.disabled = true;
-      buttonElement.textContent = 'LOADING...';
-      const response = await fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`);
-      if (response.ok) {
-        const data = await response.json();
-        displayComments(data.comments);
-      } else {
-        console.error('Ошибка при получении комментариев:', response.status);
+
+      if (!navigator.onLine) {
+        alert('Интернет пропал. Попробуй чуть позже.');
+        document.getElementById('loadingIndicator').style.display = 'none';
+        return;
       }
-      document.getElementById('loadingIndicator').style.display = 'none';
-      buttonElement.disabled = false;
-      buttonElement.textContent = 'Написать';
+      fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Комменты не грузятся. Попробуй позже.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        displayComments(data.comments);
+      })
+      .catch(error => {
+        alert(error.message);
+      })
+      .finally(() => {
+        document.getElementById('loadingIndicator').style.display = 'none';
+      });
     }
 
     function displayComments(comments) {
@@ -147,19 +157,44 @@
       initComment();
     }
 
-    async function addComment(name, text) {
+    function addComment(name, text) {
       buttonElement.disabled = true;
       buttonElement.textContent = 'UPDATING...';
-      const response = await fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`, {
+      if(!navigator.onLine){
+        alert('Интернет пропал. Попробуй позже.');
+        resetButton();
+        return;
+      };
+      fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`, {
         method: 'POST',
         body: JSON.stringify({ name, text })
-      });
-      if (response.ok) {
+      })
+      .then(response => {
+        if (!response.ok){
+          if (response.status >= 500) {
+            throw new Error('Ошибка сервера. Попробуй позже.');
+          } else if (response.status === 400) {
+            throw new Error('Некорректный запрос. Проверь введенные данные.');
+          } else {
+            throw new Error('Неизвестная ошибка. Попробуй позже.');
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
         fetchComments();
-      } else {
-        const errorData = await response.json();
-        console.error('Ошибка при добавлении комментария:', errorData.error);
-      }
+        nameInputElement.value = '';
+        textInputElement.value = '';
+      })
+      .catch(error => {
+        alert(error.message);
+      })
+      .finally(() => {
+        resetButton();
+      });
+    }
+
+    function resetButton() {
       buttonElement.disabled = false;
       buttonElement.textContent = 'Написать';
     }
