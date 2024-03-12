@@ -8,6 +8,7 @@
 
   <body>
     <div class="container">
+      <div id="loadingIndicator" style="display: none;">Загрузка комментариев...</div>
       <ul id="list" class="comments">
       </ul>
       <div class="add-form">
@@ -36,6 +37,20 @@
     const listElement = document.getElementById('list');
     const nameInputElement = document.getElementById('name-input');
     const textInputElement = document.getElementById('text-input');
+    const buttonElement = document.getElementById('add-button');
+    const personalKey = 'artem-nadtocheev';
+
+    function protector(str) {
+      return str.replace(/[&<>"']/g, function(match) {
+        switch (match) {
+          case '&': return '&amp;';
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '"': return '&quot;';
+          case "'": return '&#39;';
+        }
+      });
+    }
 
     const initComment = () => {
       const commentElements = document.querySelectorAll('.comment');
@@ -72,32 +87,47 @@
         });
     };
 
-    const buttonElement = document.getElementById('add-button');
       buttonElement.addEventListener('click', () => {
         nameInputElement.classList.remove('error');
         textInputElement.classList.remove('error');
-        if (nameInputElement.value === '') {
+        if (nameInputElement.value.trim() === '') {
           nameInputElement.classList.add('error');
           return;
-        } else if (textInputElement.value === '') {
+        } else if (textInputElement.value.trim() === '') {
           textInputElement.classList.add('error');
           return;
         }
-      addComment(nameInputElement.value, textInputElement.value);
+      const escapedName = protector(nameInputElement.value);
+      const escapedText = protector(textInputElement.value);
+      addComment(escapedName, escapedText);
       nameInputElement.value = '';
       textInputElement.value = '';
     });
 
-    const personalKey = 'artem-nadtocheev';
+    function fetchComments() {
+      document.getElementById('loadingIndicator').style.display = 'block';
 
-    async function fetchComments() {
-      const response = await fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`);
-      if (response.ok) {
-        const data = await response.json();
-        displayComments(data.comments);
-      } else {
-        console.error('Ошибка при получении комментариев:', response.status);
+      if (!navigator.onLine) {
+        alert('Интернет пропал. Попробуй чуть позже.');
+        document.getElementById('loadingIndicator').style.display = 'none';
+        return;
       }
+      fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Комменты не грузятся. Попробуй позже.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        displayComments(data.comments);
+      })
+      .catch(error => {
+        alert('Произошла ошибка соединения. Проверь интернет соединение!');
+      })
+      .finally(() => {
+        document.getElementById('loadingIndicator').style.display = 'none';
+      });
     }
 
     function displayComments(comments) {
@@ -127,17 +157,46 @@
       initComment();
     }
 
-    async function addComment(name, text) {
-      const response = await fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`, {
+    function addComment(name, text) {
+      buttonElement.disabled = true;
+      buttonElement.textContent = 'UPDATING...';
+      if(!navigator.onLine){
+        alert('Интернет пропал. Попробуй позже.');
+        resetButton();
+        return;
+      };
+      fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`, {
         method: 'POST',
-        body: JSON.stringify({ name, text })
-      });
-      if (response.ok) {
+        body: JSON.stringify({ name, text, forceError: true })
+      })
+      .then(response => {
+        if (!response.ok){
+          if (response.status >= 500) {
+            throw new Error('Ошибка сервера. Попробуй позже.');
+          } else if (response.status === 400) {
+            throw new Error('Некорректный запрос. Проверь введенные данные.');
+          } else {
+            throw new Error('Неизвестная ошибка. Попробуй позже.');
+          }
+        }
+        return response.json();
+      })
+      .then(data => {
         fetchComments();
-      } else {
-        const errorData = await response.json();
-        console.error('Ошибка при добавлении комментария:', errorData.error);
-      }
+        nameInputElement.value = '';
+        textInputElement.value = '';
+      })
+      .catch(error => {
+        alert(error.message);
+      })
+      .finally(() => {
+        resetButton();
+      });
+    }
+
+    function resetButton() {
+      buttonElement.disabled = false;
+      buttonElement.textContent = 'Написать';
     }
 
     document.addEventListener('DOMContentLoaded', (event) => {
