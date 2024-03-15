@@ -1,7 +1,12 @@
 import { postComment, commentsApi } from './api.js';
-import { createCommentElement, isLike, protector } from './utils.js';
+import { protector } from './utils.js';
+import { showLoading, hideLoading, checkOnlineStatus } from './internetStatus.js';
+import { commentData, createCommentElement, escapeAndAddComment } from './comment.js'
+import { resetButton, isLike } from './buttons.js'
 ('use strict')
+
 // const listElement = document.getElementById('list')
+
 const nameInputElement = document.getElementById('name-input')
 const textInputElement = document.getElementById('text-input')
 const buttonElement = document.getElementById('add-button')
@@ -11,12 +16,8 @@ const initComment = () => {
 	const commentElements = document.querySelectorAll('.comment')
 	commentElements.forEach(commentElement => {
 		commentElement.addEventListener('click', () => {
-			const authorName = commentElement.querySelector(
-				'.comment-header > div:first-child'
-			).textContent
-			const commentText =
-				commentElement.querySelector('.comment-text').textContent
-			textInputElement.value = `> ${commentText.trim()}\n${authorName.trim()},`
+            const { authorName, commentText } = commentData(commentElement);
+			textInputElement.value = `> ${commentText}\n${authorName},`
 			textInputElement.focus()
 		})
 	})
@@ -41,22 +42,22 @@ buttonElement.addEventListener('click', () => {
 		textInputElement.classList.add('error')
 		return
 	}
-	const escapedName = protector(nameInputElement.value)
-	const escapedText = protector(textInputElement.value)
-	addComment(escapedName, escapedText)
-	nameInputElement.value = ''
-	textInputElement.value = ''
+    escapeAndAddComment(
+			nameInputElement,
+			textInputElement,
+			protector,
+			addComment
+		)
 })
 
 function fetchComments() {
-	document.getElementById('loadingIndicator').style.display = 'block'
+	showLoading();
 
-	if (!navigator.onLine) {
-		alert('Интернет пропал. Попробуй чуть позже.')
-		document.getElementById('loadingIndicator').style.display = 'none'
-		return
+	if (!checkOnlineStatus()) {
+		hideLoading();
+		return;
 	}
-    commentsApi(personalKey)
+	commentsApi(personalKey)
 		.then(data => {
 			displayComments(data.comments)
 		})
@@ -64,7 +65,7 @@ function fetchComments() {
 			alert('Произошла ошибка соединения. Проверь интернет соединение!')
 		})
 		.finally(() => {
-			document.getElementById('loadingIndicator').style.display = 'none'
+			hideLoading();
 		})
 }
 
@@ -82,9 +83,8 @@ function displayComments(comments) {
 function addComment(name, text) {
 	buttonElement.disabled = true
 	buttonElement.textContent = 'UPDATING...'
-	if (!navigator.onLine) {
-		alert('Интернет пропал. Попробуй позже.')
-		resetButton()
+	if (!checkOnlineStatus()) {
+		resetButton(buttonElement)
 		return
 	}
 	postComment(name, text, personalKey)
@@ -97,13 +97,8 @@ function addComment(name, text) {
 			alert(error.message)
 		})
 		.finally(() => {
-			resetButton()
+			resetButton(buttonElement)
 		})
-}
-
-function resetButton() {
-	buttonElement.disabled = false
-	buttonElement.textContent = 'Написать'
 }
 
 document.addEventListener('DOMContentLoaded', event => {
