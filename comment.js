@@ -1,14 +1,21 @@
 export function commentData(commentElement) {
-	const authorName = commentElement.querySelector('.comment-header > div:first-child').textContent;
-	const commentText = commentElement.querySelector('.comment-text').textContent;
+	const authorName = commentElement.querySelector(
+		'.comment-header > div:first-child'
+	).textContent
+	const commentText = commentElement.querySelector('.comment-text').textContent
 
-    return {
-        authorName: authorName.trim(),
-        commentText: commentText.trim(),
-    }
+	return {
+		authorName: authorName.trim(),
+		commentText: commentText.trim(),
+	}
 }
 
-export function escapeAndAddComment(nameInputElement, textInputElement, protector, addComment) {
+export function escapeAndAddComment(
+	nameInputElement,
+	textInputElement,
+	protector,
+	addComment
+) {
 	const escapedName = protector(nameInputElement.value)
 	const escapedText = protector(textInputElement.value)
 	addComment(escapedName, escapedText)

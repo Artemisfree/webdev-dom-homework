@@ -2,7 +2,8 @@ import { postComment, commentsApi } from './api.js';
 import { protector } from './utils.js';
 import { showLoading, hideLoading, checkOnlineStatus } from './internetStatus.js';
 import { commentData, createCommentElement, escapeAndAddComment } from './comment.js'
-import { resetButton, isLike } from './buttons.js'
+import { resetButton, isLike, addButtonClick } from './buttons.js'
+import { initLikes, initComment } from './handlers.js';
 ('use strict')
 
 // const listElement = document.getElementById('list')
@@ -12,25 +13,7 @@ const textInputElement = document.getElementById('text-input')
 const buttonElement = document.getElementById('add-button')
 const personalKey = 'artem-nadtocheev'
 
-const initComment = () => {
-	const commentElements = document.querySelectorAll('.comment')
-	commentElements.forEach(commentElement => {
-		commentElement.addEventListener('click', () => {
-            const { authorName, commentText } = commentData(commentElement);
-			textInputElement.value = `> ${commentText}\n${authorName},`
-			textInputElement.focus()
-		})
-	})
-}
 
-const initLikes = () => {
-	document.querySelectorAll('.like-button').forEach(button => {
-		button.addEventListener('click', event => {
-			event.stopPropagation()
-            isLike(button);
-		})
-	})
-}
 
 buttonElement.addEventListener('click', () => {
 	nameInputElement.classList.remove('error')
@@ -77,7 +60,7 @@ function displayComments(comments) {
 		listElement.appendChild(commentElement);
 	})
 	initLikes()
-	initComment()
+	initComment(textInputElement)
 }
 
 function addComment(name, text) {

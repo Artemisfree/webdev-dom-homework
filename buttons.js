@@ -1,3 +1,6 @@
+import { escapeAndAddComment } from './comment.js'
+
+
 export function isLike(button) {
 	const likesCounter = button.previousElementSibling
 	let currentLikes = parseInt(likesCounter.textContent)
@@ -18,4 +21,22 @@ export function isLike(button) {
 export function resetButton(buttonElement) {
 	buttonElement.disabled = false
 	buttonElement.textContent = 'Написать'
+}
+
+export function addButtonClick(
+	nameInputElement,
+	textInputElement,
+	protector,
+	AddComment
+) {
+	nameInputElement.classList.remove('error')
+	textInputElement.classList.remove('error')
+	if (nameInputElement.value.trim() === '') {
+		nameInputElement.classList.add('error')
+		return
+	} else if (textInputElement.value.trim() === '') {
+		textInputElement.classList.add('error')
+		return
+	}
+	escapeAndAddComment(nameInputElement, textInputElement, protector, addComment)
 }
