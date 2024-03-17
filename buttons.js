@@ -1,5 +1,4 @@
-import { escapeAndAddComment } from './comment.js'
-
+import { escapeAndAddComment, addComment } from './comment.js'
 
 export function isLike(button) {
 	const likesCounter = button.previousElementSibling
@@ -18,8 +17,9 @@ export function isLike(button) {
 	}
 }
 
-export function resetButton(buttonElement) {
-	buttonElement.disabled = false
+export function resetButton() {
+	const buttonElement = document.getElementById('add-button')
+    buttonElement.disabled = false
 	buttonElement.textContent = 'Написать'
 }
 
