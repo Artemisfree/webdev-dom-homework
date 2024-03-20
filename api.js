@@ -1,7 +1,8 @@
 export const personalKey = 'artem-nadtocheev'
+const endpoint = `https://wedev-api.sky.pro/api/v2/${personalKey}/comments`
 
-export function postComment(name, text, personalKey) {
-	return fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`, {
+export function postComment(name, text) {
+	return fetch(endpoint, {
 		method: 'POST',
 		body: JSON.stringify({ name, text }),
 	}).then(response => {
@@ -18,13 +19,11 @@ export function postComment(name, text, personalKey) {
 	})
 }
 
-export function commentsApi(personalKey) {
-	return fetch(`https://wedev-api.sky.pro/api/v1/${personalKey}/comments`).then(
-		response => {
-			if (!response.ok) {
-				throw new Error('Комменты не грузятся. Попробуй позже.')
-			}
-			return response.json()
+export function commentsApi() {
+	return fetch(endpoint).then(response => {
+		if (!response.ok) {
+			throw new Error('Комменты не грузятся. Попробуй позже.')
 		}
-	)
+		return response.json()
+	})
 }
