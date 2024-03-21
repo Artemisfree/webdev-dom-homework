@@ -31,7 +31,7 @@ export function escapeAndAddComment(
 }
 
 export function createCommentElement(comment) {
-	const commentElement = document.createElement('li')
+	const commentElement = document.createElement('li');
 	commentElement.className = 'comment'
 	commentElement.innerHTML = `
         <div class="comment-header">
