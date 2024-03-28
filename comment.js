@@ -4,6 +4,7 @@ import { postComment } from './api.js'
 import { checkOnlineStatus } from './internetStatus.js'
 import { protector } from './utils.js'
 import { fetchComments } from './main.js'
+import { format } from 'date-fns'
 
 export function commentData(commentElement) {
 	const authorName = commentElement.querySelector(
@@ -33,10 +34,11 @@ export function escapeAndAddComment(
 export function createCommentElement(comment) {
 	const commentElement = document.createElement('li');
 	commentElement.className = 'comment'
+	const formattedDate = format(new Date(comment.date), 'yyyy-MM-dd HH.mm.ss');
 	commentElement.innerHTML = `
         <div class="comment-header">
             <div>${comment.author.name}</div>
-            <div>${new Date(comment.date).toLocaleString()}</div>
+            <div>${formattedDate}</div>
         </div>
         <div class="comment-body">
             <div class="comment-text">${comment.text}</div>
