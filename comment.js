@@ -1,6 +1,6 @@
 import { initLikes, initComment } from './handlers.js'
 import { resetButton } from './buttons.js'
-import { postComment } from './api.js'
+import { postComment, userName } from './api.js'
 import { checkOnlineStatus } from './internetStatus.js'
 import { protector } from './utils.js'
 import { fetchComments } from './main.js'
@@ -27,8 +27,6 @@ export function escapeAndAddComment(
 	const escapedName = protector(nameInputElement.value)
 	const escapedText = protector(textInputElement.value)
 	addComment(escapedName, escapedText)
-	nameInputElement.value = ''
-	textInputElement.value = ''
 }
 
 export function createCommentElement(comment) {
@@ -80,7 +78,6 @@ export function addComment(name, text) {
 	postComment(name, text)
 		.then(data => {
 			fetchComments()
-			nameInputElement.value = ''
 			textInputElement.value = ''
 		})
 		.catch(error => {
@@ -91,25 +88,36 @@ export function addComment(name, text) {
 		})
 }
 
+let isAddButtonHandlerAdded = false;
+
 export function initializeComments() {
     const buttonElement = document.getElementById('add-button')
     const nameInputElement = document.getElementById('name-input')
     const textInputElement = document.getElementById('text-input')
-    buttonElement.addEventListener('click', () => {
-        nameInputElement.classList.remove('error')
-        textInputElement.classList.remove('error')
-        if (nameInputElement.value.trim() === '') {
-            nameInputElement.classList.add('error')
-            return
-        } else if (textInputElement.value.trim() === '') {
-            textInputElement.classList.add('error')
-            return
-        }
-        escapeAndAddComment(
-            nameInputElement,
-            textInputElement,
-            protector,
-            addComment
-        )
-    })
+
+	if (userName) {
+			nameInputElement.value = userName
+			nameInputElement.readOnly = true
+		}
+
+	if (!isAddButtonHandlerAdded) {
+		buttonElement.addEventListener('click', () => {
+			nameInputElement.classList.remove('error')
+			textInputElement.classList.remove('error')
+			if (nameInputElement.value.trim() === '') {
+				nameInputElement.classList.add('error')
+				return
+			} else if (textInputElement.value.trim() === '') {
+				textInputElement.classList.add('error')
+				return
+			}
+			escapeAndAddComment(
+				nameInputElement,
+				textInputElement,
+				protector,
+				addComment
+			)
+		})
+		isAddButtonHandlerAdded = true;
+	}
 }

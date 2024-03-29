@@ -2,9 +2,11 @@ export const personalKey = 'artem-nadtocheev'
 const commentsUrl = `https://wedev-api.sky.pro/api/v2/${personalKey}/comments`
 const userUrl = `https://wedev-api.sky.pro/api/user/login`
 export let token;
+export let userName
 
-export const setToken = (newToken) => {
+export const setToken = (newToken, newName) => {
     token = newToken;
+	userName = newName;
 }
 
 export function postComment(name, text) {
