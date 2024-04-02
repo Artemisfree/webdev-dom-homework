@@ -1,4 +1,5 @@
-import { loginUser, setToken, token } from "./api.js";
+import { loginUser, setToken, token, userName } from "./api.js";
+import { initializeComments } from './comment.js'
 
 export const renderLogin = () => {
     const appElement = document.getElementById('app')
@@ -26,7 +27,7 @@ export const renderLogin = () => {
 		event.preventDefault()
 		loginUser(loginInputElement.value, passwordInputElement.value).then(
 			responseData => {
-				setToken(responseData.user.token)
+				setToken(responseData.user.token, responseData.user.name)
                 loginForm.reset();
                 hideLoginFormAndShowAddForm()
 			}
@@ -42,11 +43,11 @@ const hideLoginFormAndShowAddForm = () => {
 	if (loginFormContainer) {
 		loginFormContainer.style.display = 'none'
 	}
-
 	const addForm = document.querySelector('.add-form')
     const addAll = document.querySelector('.comments')
 	if (addForm) {
 		addForm.style.display = 'flex'
         addAll.style.display = 'flex'
 	}
+    initializeComments();
 }

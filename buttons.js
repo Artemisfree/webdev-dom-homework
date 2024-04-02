@@ -1,6 +1,12 @@
+import { isUserAuth } from './api.js'
 import { escapeAndAddComment, addComment } from './comment.js'
 
 export function isLike(button) {
+	if (!isUserAuth()) {
+		alert('Для того чтобы ставить лайки, необходима авторизация.');
+		return;
+	}
+
 	const likesCounter = button.previousElementSibling
 	let currentLikes = parseInt(likesCounter.textContent)
 	if (!isNaN(currentLikes)) {
